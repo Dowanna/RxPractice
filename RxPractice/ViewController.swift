@@ -1,38 +1,26 @@
 import UIKit
+import RxSwift
+import RxCocoa
+
 
 class ViewController: UIViewController {
 
     @IBOutlet weak var speakerListTableView: UITableView!
 
     let viewModel = SpeakerListViewModel()
+    let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        speakerListTableView.dataSource = self
-        speakerListTableView.delegate = self
-    }
-}
 
-extension ViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.data.count
-    }
+        viewModel.data.bind(to: speakerListTableView.rx.items(cellIdentifier: "SpeakerCell")) { _, speaker, cell in
+            cell.textLabel?.text = speaker.name
+            cell.detailTextLabel?.text = speaker.twitterHandle
+        }.disposed(by: disposeBag)
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "SpeakerCell")
-            else {
-                return UITableViewCell()
-        }
-
-        let speaker = viewModel.data[indexPath.row]
-        cell.textLabel?.text = speaker.name
-        cell.detailTextLabel?.text = speaker.twitterHandle
-        return cell
-    }
-}
-
-extension ViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("You selected \(viewModel.data[indexPath.row])")
+        speakerListTableView.rx.modelSelected(Speaker.self)
+            .subscribe({ (speaker) in
+                print("you selected \(speaker)")
+            }).disposed(by: disposeBag)
     }
 }
