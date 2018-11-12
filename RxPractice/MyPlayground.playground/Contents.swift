@@ -1,17 +1,29 @@
 //: Playground - noun: a place where people can play
-
+import XCPlayground
 import RxSwift
 import RxCocoa
 
-func myJust<E>(_ element: E) -> Observable<E> {
-    return Observable.create { observer in
-        observer.on(.next(element))
-        observer.on(.completed)
-        return Disposables.create()
-    }
+XCPlaygroundPage.currentPage.needsIndefiniteExecution = true
+
+func exampleOf(description: String, action: () -> Void) {
+    print("\n ----example of:", description, "----")
+    action()
 }
 
-myJust(0)
-    .subscribe(onNext: { n in
-        print(n)
-    })
+exampleOf(description: "subscribeNext") {
+    let dispose = DisposeBag()
+    Observable.of([1,2,3]).subscribe(onNext: {
+        print($0)
+    }).disposed(by: dispose)
+}
+
+exampleOf(description: "behaviorSubject") {
+    let dispose = DisposeBag()
+    let string = BehaviorSubject(value: "hello")
+
+    string.subscribe({
+        print($0)
+    }).disposed(by: dispose)
+
+    string.on(Event.next("world"))
+}
